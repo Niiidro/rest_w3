@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/Niiidro/rest_w3/issues"
   },
-  "homepage": "https://github.com/Niiidro/rest_w3#readme"
+  "homepage": "https://github.com/Niiidro/rest_w3#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
