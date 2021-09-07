@@ -1,42 +1,49 @@
 import users from "./users.js";
 import express from "express";
 import bodyParser from "body-parser";
-import model from "./model.js"
+import user from "./Model/user.js";
 
 function setup(app, port, mongoose) {
   app.use(express.json());
   app.listen(port, () => {
-    mongoose
+    mongoose;
     console.log(`App listening at http://localhost:${port}.`);
   });
 
   //Gibt alle Personen aus
-   app.get("/", async (req, res) =>  {
-
-    res.status(200).send(await model.user.find());
+  app.get("/", async (req, res) => {
+    try {
+      res.status(200).send(await user.find());
+    } catch (error) {
+      res.status(404).send("No Users found");
+    }
   });
 
   //Gibt eine Person mit der jeweiligen ID aus
-  app.get("/:id", (req, res) => {
+  app.get("/:id", async (req, res) => {
     const id = req.params.id;
-    const ret = users.getUserById(id);
-    if (ret == 404) {
-      res.status(404).send("no User found with this ID");
-    } else {
+    try {
+      const ret = await user.findById(id);
       res.status(200).send(ret);
+    } catch (error) {
+      res.status(404).send("No User found with this ID");
     }
   });
 
   //Erstelle eine Person
   app.post("/", (req, res) => {
     const body = req.body;
-    
-    if (JSON.stringify(body) === "{}") {
-      console.log(body)
+    try {
+      res.status(201).send(user.create(body));
+    } catch (error) {
+      res.status(204).send("Hesch öppis falsch gmacht");
+    }
+    /*  if (JSON.stringify(body) === "{}") {
+      console.log(body);
       res.status(204).send("Body is empty");
     } else {
       res.status(201).send(model.user.create(body));
-    }
+    } */
   });
 
   //Überschreibt eine Person
