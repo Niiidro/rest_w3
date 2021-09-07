@@ -31,29 +31,30 @@ function setup(app, port, mongoose) {
   });
 
   //Erstelle eine Person
-  app.post("/", (req, res) => {
+  app.post("/", async (req, res) => {
     const body = req.body;
     try {
-      res.status(201).send(user.create(body));
+      const ret = await user.create(body);
+      res.status(201).send(ret);
     } catch (error) {
       res.status(204).send("Hesch öppis falsch gmacht");
     }
-    /*  if (JSON.stringify(body) === "{}") {
-      console.log(body);
-      res.status(204).send("Body is empty");
-    } else {
-      res.status(201).send(model.user.create(body));
-    } */
   });
 
   //Überschreibt eine Person
-  app.put("/:id", (req, res) => {
+  app.put("/:id", async (req, res) => {
     const id = req.params.id;
     const method = "put";
     const body = req.body;
+    // nur prüfung auf leeren Body nicht auf ungültige
+    try {
+      const ret = await user.findByIdAndUpdate({ id }, { body });
 
-    // nur prüfung auf leeren Body nicht auf ungültigen
-    if (JSON.stringify(body) === "{}") {
+      res.status(201).send(ret);
+    } catch (error) {
+      res.status(200).send(error);
+    }
+    /* if (JSON.stringify(body) === "{}") {
       // prüfen ob Body leer ist
       res.status(204).send("Body is empty");
     } else {
@@ -65,7 +66,7 @@ function setup(app, port, mongoose) {
       } else {
         res.status(201).send(ret);
       }
-    }
+    }*/
   });
 
   //Aktualisert eine Person
