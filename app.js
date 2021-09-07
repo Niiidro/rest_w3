@@ -1,3 +1,4 @@
+import rest from "./router.js";
 import express from "express";
 import bodyParser from "body-parser";
 import users from "./users.js";
