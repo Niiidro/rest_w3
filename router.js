@@ -11,7 +11,7 @@ function setup(app, port, mongoose) {
   });
 
   //Gibt alle Personen aus
-  app.get("/", (req, res) =>  {
+   app.get("/", async (req, res) =>  {
 
     res.status(200).send(await model.user.find());
   });
