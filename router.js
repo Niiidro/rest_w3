@@ -1,6 +1,7 @@
 import express from 'express';
 import account from './Model/account.js';
 import ip from 'ip';
+import jwt from 'jsonwebtoken';
 
 function setup(app, port, mongoose) {
   app.use(express.json());
@@ -32,7 +33,7 @@ function setup(app, port, mongoose) {
   //Create Account
   app.post('/', async (req, res) => {
     const body = req.body;
-    body.lastIP = ip.address()
+    body.lastIP = ip.address();
     try {
       const ret = await account.create(body);
       res.status(201).send(ret);
@@ -95,15 +96,23 @@ function setup(app, port, mongoose) {
     const id = req.params.id;
     try {
       const ret = await account.deleteOne({ _id: id });
-      
-      res.status(202).send("Account with the ID: " + id + " is deleted.");
+
+      res.status(202).send('Account with the ID: ' + id + ' is deleted.');
     } catch (e) {
       res.status(409).send(e);
     }
   });
 
   app.post('/signIn', async (req, res) => {
-    res.status(200).send();
+    const ret = await account.findOne({
+      email: req.body.email,
+      password: req.body.password,
+    });
+    if (ret !== 0 || null) {
+      let token = jwt.sign({ id: req.body._id }, 'secret');
+      res.status(202).send(token);
+    }
+    res.status(404);
   });
   app.post('/recover', async (req, res) => {
     res.status(200).send();
