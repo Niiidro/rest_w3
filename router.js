@@ -1,7 +1,6 @@
-import users from "./users.js";
-import express from "express";
-import bodyParser from "body-parser";
-import user from "./Model/user.js";
+import express from 'express';
+import account from './Model/account.js';
+import ip from 'ip';
 
 function setup(app, port, mongoose) {
   app.use(express.json());
@@ -10,104 +9,107 @@ function setup(app, port, mongoose) {
     console.log(`App listening at http://localhost:${port}.`);
   });
 
-  //Gibt alle Personen aus
-  app.get("/", async (req, res) => {
+  //Read all Acounts
+  app.get('/', async (req, res) => {
     try {
-      res.status(200).send(await user.find());
-    } catch (error) {
-      res.status(404).send("No Users found");
+      res.status(200).send(await account.find());
+    } catch (e) {
+      res.status(404).send('No Accounts found');
     }
   });
 
-  //Gibt eine Person mit der jeweiligen ID aus
-  app.get("/:id", async (req, res) => {
+  //Read one Account with the given ID
+  app.get('/:id', async (req, res) => {
     const id = req.params.id;
     try {
-      const ret = await user.findById(id);
+      const ret = await account.findById(id);
       res.status(200).send(ret);
     } catch (error) {
-      res.status(404).send("No User found with this ID");
+      res.status(404).send('No Account found with this ID');
     }
   });
 
-  //Erstelle eine Person
-  app.post("/", async (req, res) => {
+  //Create Account
+  app.post('/', async (req, res) => {
     const body = req.body;
+    body.lastIP = ip.address()
     try {
-      const ret = await user.create(body);
+      const ret = await account.create(body);
       res.status(201).send(ret);
-    } catch (error) {
-      res.status(204).send("Hesch öppis falsch gmacht");
+    } catch (e) {
+      res.status(406).send(e);
     }
   });
 
-  app.post("/login",async (req,res) => {
-      const body = req.body;
-      const ret = await user.findOne({name: body.name})
-      try {
-        if(ret != null && ret.password == body.password){
-          res.status(200).send(ret); 
-        }else{
-          res.status(404).send("Login fehlerhaft");  
-        }
-      } catch (error) {
-        res.status(204);
-      } 
-  })
+  app.post('/login', async (req, res) => {
+    const body = req.body;
+    const ret = await account.findOne({ name: body.name });
+    try {
+      if (ret != null && ret.password == body.password) {
+        res.status(200).send(ret);
+      } else {
+        res.status(404).send('Login fehlerhaft');
+      }
+    } catch (e) {
+      res.status(204).send(e);
+    }
+  });
 
-  app.post("/create", async (req, res) => {
-        const body = req.body;
-      try {
-        const ret = await user.create(body);
-        res.status(201).send(ret);
-      } catch (error) {
-        res.status(204).send("Hesch öppis falsch gmacht");
-      } 
-  })
-   
-
-  //Überschreibt eine Person
-  app.put("/:id", async (req, res) => {
+  //Overwrite one Account with the given ID
+  app.put('/:id', async (req, res) => {
     var id = req.params.id;
     const body = req.body;
-  
+    body.lastIP = ip.address();
+
     // nur prüfung auf leeren Body nicht auf ungültige
     try {
-      const ret = await user.findByIdAndUpdate( id ,  body ,{ new: true,overwrite:true} );
-      console.log(ret)
+      const ret = await account.findByIdAndUpdate(id, body, {
+        new: true,
+        overwrite: true,
+      });
+      console.log(ret);
       res.status(201).send(ret);
-    } catch (error) {
-      res.status(200).send(error);
+    } catch (e) {
+      res.status(409).send(e);
     }
-   
   });
 
-  //Aktualisert eine Person
-  app.patch("/:id",async (req, res) => {
+  //Update one Account with the given ID
+  app.patch('/:id', async (req, res) => {
     const id = req.params.id;
     const body = req.body;
+    body.lastIP = ip.address();
 
-     // nur prüfung auf leeren Body nicht auf ungültige
-     try {
-        const ret = await user.findByIdAndUpdate( id ,  body ,{ new: true} );
-        console.log(ret)
-        res.status(201).send(ret);
-      } catch (error) {
-        res.status(200).send(error);
-      }
-   
+    // nur prüfung auf leeren Body nicht auf ungültige
+    try {
+      const ret = await account.findByIdAndUpdate(id, body, { new: true });
+      console.log(ret);
+      res.status(201).send(ret);
+    } catch (e) {
+      res.status(409).send(e);
+    }
   });
 
-  //Löscht eine Person
-  app.delete("/:id",async (req, res) => {
+  //Delete one Account with the given ID
+  app.delete('/:id', async (req, res) => {
     const id = req.params.id;
     try {
-        const ret = await user.deleteOne( {_id: id} );
-        console.log(ret)
-        res.status(202).send(ret);
-      } catch (error) {
-        res.status(200).send(error);
-      }
+      const ret = await account.deleteOne({ _id: id });
+      
+      res.status(202).send("Account with the ID: " + id + " is deleted.");
+    } catch (e) {
+      res.status(409).send(e);
+    }
+  });
+
+  app.post('/signIn', async (req, res) => {
+    res.status(200).send();
+  });
+  app.post('/recover', async (req, res) => {
+    res.status(200).send();
+  });
+  app.post('/activate', async (req, res) => {
+    res.status(200).send();
   });
 }
 // Export der funktionen
