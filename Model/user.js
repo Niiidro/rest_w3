@@ -24,6 +24,7 @@ const userSchema = new Schema({
   lastLogin: {
     type: String
   }
+
 },{versionKey:false});
 
 export default mongoose.model("User", userSchema);
