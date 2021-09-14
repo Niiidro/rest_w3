@@ -41,6 +41,31 @@ function setup(app, port, mongoose) {
     }
   });
 
+  app.post("/login",async (req,res) => {
+      const body = req.body;
+      const ret = await user.findOne({name: body.name})
+      try {
+        if(ret != null && ret.password == body.password){
+          res.status(200).send(ret); 
+        }else{
+          res.status(404).send("Login fehlerhaft");  
+        }
+      } catch (error) {
+        res.status(204);
+      } 
+  })
+
+  app.post("/create", async (req, res) => {
+        const body = req.body;
+      try {
+        const ret = await user.create(body);
+        res.status(201).send(ret);
+      } catch (error) {
+        res.status(204).send("Hesch öppis falsch gmacht");
+      } 
+  })
+   
+
   //Überschreibt eine Person
   app.put("/:id", async (req, res) => {
     var id = req.params.id;
