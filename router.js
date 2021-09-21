@@ -3,6 +3,16 @@ import account from './Model/account.js';
 import ip from 'ip';
 import jwt from 'jsonwebtoken';
 
+function jwtChecker(req, res, next) {
+  let token = req.header('Authorization');
+  try {
+    const decode = jwt.verify(token, 'secret');
+    req.decoded = decode;
+    next();
+  } catch (e) {
+    res.status(403).send('Unauthorized Token');
+  }
+}
 function setup(app, port, mongoose) {
   app.use(express.json());
   app.listen(port, () => {
@@ -11,7 +21,7 @@ function setup(app, port, mongoose) {
   });
 
   //Read all Acounts
-  app.get('/', async (req, res) => {
+  app.get('/', jwtChecker, async (req, res) => {
     try {
       res.status(200).send(await account.find());
     } catch (e) {
@@ -20,7 +30,7 @@ function setup(app, port, mongoose) {
   });
 
   //Read one Account with the given ID
-  app.get('/:id', async (req, res) => {
+  app.get('/:id', jwtChecker, async (req, res) => {
     const id = req.params.id;
     try {
       const ret = await account.findById(id);
@@ -42,28 +52,16 @@ function setup(app, port, mongoose) {
     }
   });
 
-  app.post('/login', async (req, res) => {
-    const body = req.body;
-    const ret = await account.findOne({ name: body.name });
-    try {
-      if (ret != null && ret.password == body.password) {
-        res.status(200).send(ret);
-      } else {
-        res.status(404).send('Login fehlerhaft');
-      }
-    } catch (e) {
-      res.status(204).send(e);
-    }
-  });
-
   //Overwrite one Account with the given ID
   app.put('/:id', async (req, res) => {
+    let token = req.header('Authorization');
     var id = req.params.id;
     const body = req.body;
     body.lastIP = ip.address();
 
     // nur prüfung auf leeren Body nicht auf ungültige
     try {
+      jwt.verify(token, 'secret');
       const ret = await account.findByIdAndUpdate(id, body, {
         new: true,
         overwrite: true,
@@ -77,12 +75,14 @@ function setup(app, port, mongoose) {
 
   //Update one Account with the given ID
   app.patch('/:id', async (req, res) => {
+    let token = req.header('Authorization');
     const id = req.params.id;
     const body = req.body;
     body.lastIP = ip.address();
 
     // nur prüfung auf leeren Body nicht auf ungültige
     try {
+      jwt.verify(token, 'secret');
       const ret = await account.findByIdAndUpdate(id, body, { new: true });
       console.log(ret);
       res.status(201).send(ret);
@@ -93,8 +93,10 @@ function setup(app, port, mongoose) {
 
   //Delete one Account with the given ID
   app.delete('/:id', async (req, res) => {
+    let token = req.header('Authorization');
     const id = req.params.id;
     try {
+      jwt.verify(token, 'secret');
       const ret = await account.deleteOne({ _id: id });
 
       res.status(202).send('Account with the ID: ' + id + ' is deleted.');
@@ -108,11 +110,11 @@ function setup(app, port, mongoose) {
       email: req.body.email,
       password: req.body.password,
     });
-    if (ret !== 0 || null) {
-      let token = jwt.sign({ id: req.body._id }, 'secret');
+    if (ret !== null) {
+      let token = jwt.sign({ id: ret.id }, 'secret');
       res.status(202).send(token);
     }
-    res.status(404);
+    res.status(404).send();
   });
   app.post('/recover', async (req, res) => {
     res.status(200).send();
